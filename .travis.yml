@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t avvins/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run avvins/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t avvins/multi-client ./client
+  - docker build -t avvins/multi-nginx ./nginx
+  - docker build -t avvins/multi-server ./server
+  - docker build -t avvins/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push avvins/multi-client
+  - docker push avvins/multi-nginx
+  - docker push avvins/multi-server
+  - docker push avvins/multi-worker
